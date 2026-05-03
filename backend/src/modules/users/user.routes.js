@@ -44,4 +44,36 @@ router.patch(
   userController.updateProfile
 );
 
+const { authorize } = require('../../common/middleware/auth.middleware');
+
+/**
+ * GET /api/users
+ * 
+ * Get all users with filtering and pagination
+ * 
+ * Authentication: Required
+ * Authorization: Admin only
+ */
+router.get(
+  '/',
+  authenticate,
+  authorize('admin'),
+  userController.getAllUsers
+);
+
+/**
+ * PATCH /api/users/:id/role
+ * 
+ * Update user role
+ * 
+ * Authentication: Required
+ * Authorization: Admin only
+ */
+router.patch(
+  '/:id/role',
+  authenticate,
+  authorize('admin'),
+  userController.updateUserRole
+);
+
 module.exports = router;

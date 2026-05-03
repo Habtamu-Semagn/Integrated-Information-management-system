@@ -72,7 +72,64 @@ async function updateProfile(req, res, next) {
   }
 }
 
+/**
+ * Get all users (Admin only)
+ * 
+ * Retrieves all registered users with filtering and pagination.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} req.query - Query parameters (role, search, page, limit)
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+async function getAllUsers(req, res, next) {
+  try {
+    const query = req.query;
+    const data = await userService.getAllUsers(query);
+
+    return successResponse(
+      res,
+      data,
+      'Users retrieved successfully'
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Update user role (Admin only)
+ * 
+ * Updates a user's role in the system.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - User ID to update
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.role - New role
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+async function updateUserRole(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    const user = await userService.updateUserRole(id, role);
+
+    return successResponse(
+      res,
+      user,
+      'User role updated successfully'
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getProfile,
-  updateProfile
+  updateProfile,
+  getAllUsers,
+  updateUserRole
 };

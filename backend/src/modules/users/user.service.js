@@ -300,10 +300,98 @@ async function validateUserRole(userId, allowedRoles) {
   return allowedRoles.includes(user.role);
 }
 
+/**
+ * Get all users (Admin only)
+ * 
+ * Retrieves all registered users with optional filtering and pagination.
+ * 
+ * @param {Object} query - Query parameters
+ * @param {string} [query.role] - Filter by role
+ * @param {string} [query.search] - Search by name or email
+ * @param {number} [query.page=1] - Page number
+ * @param {number} [query.limit=10] - Items per page
+ * @returns {Promise<Object>} Object containing users array and pagination info
+ */
+async function getAllUsers(query = {}) {
+  const { role, search, page = 1, limit = 10 } = query;
+  
+  const filter = {};
+  
+  if (role) {
+    filter.role = role;
+  }
+  
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  const skip = (page - 1) * limit;
+  
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(),
+    User.countDocuments(filter)
+  ]);
+
+  const sanitizedUsers = users.map(user => {
+    const { _id, password, __v, ...rest } = user;
+    return { id: _id.toString(), ...rest };
+  });
+
+  return {
+    users: sanitizedUsers,
+    pagination: {
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      pages: Math.ceil(total / limit)
+    }
+  };
+}
+
+/**
+ * Update user role (Admin only)
+ * 
+ * Updates a user's role in the system.
+ * 
+ * @param {string} userId - MongoDB ObjectId of the user
+ * @param {string} role - New role (applicant, staff, admin)
+ * @returns {Promise<Object>} Updated user object
+ */
+async function updateUserRole(userId, role) {
+  if (!['applicant', 'staff', 'admin'].includes(role)) {
+    throw new ValidationError('Invalid role');
+  }
+
+  if (!userId || !userId.match(/^[0-9a-fA-F]{24}$/)) {
+    throw new ValidationError('Invalid user ID format');
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { role },
+    { new: true, runValidators: true }
+  );
+
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  return user.toJSON();
+}
+
 module.exports = {
   getUserById,
   getUserByEmail,
   createUser,
   updateUser,
-  validateUserRole
+  validateUserRole,
+  getAllUsers,
+  updateUserRole
 };
