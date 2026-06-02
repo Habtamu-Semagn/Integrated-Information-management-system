@@ -105,6 +105,157 @@ export interface UserResponse {
   message: string;
 }
 
+// Training Types
+export interface Training {
+  id: string;
+  title: string;
+  description: string;
+  category: "business-fundamentals" | "marketing" | "finance" | "technology" | "legal" | "sales" | "operations";
+  level: "beginner" | "intermediate" | "advanced";
+  instructor: string;
+  duration: number;
+  content: string;
+  materials?: Array<{ title: string; location: string; type: "online" | "in-person" | "hybrid" }>;
+  enrolledUsers?: string[];
+  completedUsers?: Array<{ userId: string; completedAt: string }>;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTrainingRequest {
+  title: string;
+  description: string;
+  category: string;
+  level?: string;
+  instructor: string;
+  duration: number;
+  content: string;
+  materials?: Array<{ title: string; location: string; type: "online" | "in-person" | "hybrid" }>;
+}
+
+export interface TrainingsResponse {
+  success: boolean;
+  data: Training[];
+  message: string;
+}
+
+// Fund Types
+export interface Fund {
+  id: string;
+  title: string;
+  description: string;
+  fundType: "seed-funding" | "series-a" | "series-b" | "grant" | "accelerator" | "venture-capital";
+  minimumAmount: number;
+  maximumAmount: number;
+  currency: string;
+  deadline: string;
+  fundingOrganization: string;
+  requirements?: { minTeamSize?: number; targetIndustries?: string[]; eligibleCountries?: string[] };
+  status: "open" | "closed" | "paused";
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FundApplication {
+  id: string;
+  fundId: string;
+  startupId: string;
+  applicationData: {
+    teamSize: number;
+    fundingRequired: number;
+    useOfFunds: string;
+    businessPlan?: string;
+    financialProjections?: string;
+  };
+  status: "submitted" | "under-review" | "approved" | "rejected" | "withdrawn";
+  reviewedBy?: string;
+  reviewComments?: string;
+  reviewDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFundApplicationRequest {
+  teamSize: number;
+  fundingRequired: number;
+  useOfFunds: string;
+  businessPlan?: string;
+  financialProjections?: string;
+}
+
+// Competition Types
+export interface Competition {
+  id: string;
+  title: string;
+  description: string;
+  competitionType: "pitch-competition" | "hackathon" | "idea-challenge" | "business-plan" | "innovation-award";
+  prizes: { firstPlace: number; secondPlace: number; thirdPlace: number; currency: string };
+  registrationDeadline: string;
+  competitionDate: string;
+  location?: string;
+  isVirtual: boolean;
+  maxParticipants?: number;
+  judges?: Array<{ name: string; expertise: string; imageUrl?: string }>;
+  status: "upcoming" | "ongoing" | "completed" | "cancelled";
+  participants?: string[];
+  results?: { firstPlaceWinner?: string; secondPlaceWinner?: string; thirdPlaceWinner?: string };
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCompetitionRequest {
+  title: string;
+  description: string;
+  competitionType: string;
+  registrationDeadline: string;
+  competitionDate: string;
+  location?: string;
+  isVirtual?: boolean;
+  maxParticipants?: number;
+  prizes?: { firstPlace: number; secondPlace: number; thirdPlace: number; currency: string };
+  judges?: Array<{ name: string; expertise: string; imageUrl?: string }>;
+}
+
+// Event Types
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  eventType: "webinar" | "workshop" | "networking" | "conference" | "meetup" | "masterclass";
+  startDateTime: string;
+  endDateTime: string;
+  location?: { venue?: string; city?: string; country?: string; onlineLink?: string };
+  isVirtual: boolean;
+  isHybrid: boolean;
+  speakers?: Array<{ name: string; title: string; bio?: string; imageUrl?: string }>;
+  capacity?: number;
+  registeredAttendees?: string[];
+  status: "upcoming" | "ongoing" | "completed" | "cancelled";
+  agenda?: Array<{ time: string; activity: string; speaker?: string; duration: number }>;
+  materials?: Array<{ title: string; url: string; type: string }>;
+  tags?: string[];
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEventRequest {
+  title: string;
+  description: string;
+  eventType: string;
+  startDateTime: string;
+  endDateTime: string;
+  location?: { venue?: string; city?: string; country?: string; onlineLink?: string };
+  isVirtual?: boolean;
+  isHybrid?: boolean;
+  speakers?: Array<{ name: string; title: string; bio?: string; imageUrl?: string }>;
+  capacity?: number;
+  category?: string;
+}
+
 // Generic Response Type
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -347,6 +498,346 @@ export const usersApi = {
 // ============================================================================
 
 /**
+ * Training API
+ */
+export const trainingApi = {
+  /**
+   * Get all training courses
+   * GET /api/training
+   */
+  getAll: async (params?: { category?: string; level?: string }): Promise<Training[]> => {
+    const response = await apiClient.get<TrainingsResponse>("/training", { params });
+    return response.data.data;
+  },
+
+  /**
+   * Get training by ID
+   * GET /api/training/:id
+   */
+  getById: async (id: string): Promise<Training> => {
+    const response = await apiClient.get<ApiResponse<Training>>(`/training/${id}`);
+    return response.data.data;
+  },
+
+  /**
+   * Create training (admin only)
+   * POST /api/training
+   */
+  create: async (data: CreateTrainingRequest): Promise<Training> => {
+    const response = await apiClient.post<ApiResponse<Training>>("/training", data);
+    return response.data.data;
+  },
+
+  /**
+   * Update training (admin only)
+   * PATCH /api/training/:id
+   */
+  update: async (id: string, data: Partial<CreateTrainingRequest>): Promise<Training> => {
+    const response = await apiClient.patch<ApiResponse<Training>>(`/training/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Delete training (admin only)
+   * DELETE /api/training/:id
+   */
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/training/${id}`);
+  },
+
+  /**
+   * Enroll in training
+   * POST /api/training/:id/enroll
+   */
+  enroll: async (id: string): Promise<Training> => {
+    const response = await apiClient.post<ApiResponse<Training>>(`/training/${id}/enroll`);
+    return response.data.data;
+  },
+
+  /**
+   * Mark training as completed
+   * POST /api/training/:id/complete
+   */
+  complete: async (id: string): Promise<Training> => {
+    const response = await apiClient.post<ApiResponse<Training>>(`/training/${id}/complete`);
+    return response.data.data;
+  },
+
+  /**
+   * Get user's enrolled trainings
+   * GET /api/training/me/enrolled
+   */
+  getMyTrainings: async (): Promise<Training[]> => {
+    const response = await apiClient.get<TrainingsResponse>("/training/me/enrolled");
+    return response.data.data;
+  },
+};
+
+/**
+ * Fund API
+ */
+export const fundApi = {
+  /**
+   * Get all funds
+   * GET /api/funds
+   */
+  getAll: async (params?: { status?: string; fundType?: string; onlyOpen?: boolean }): Promise<Fund[]> => {
+    const response = await apiClient.get<ApiResponse<Fund[]>>("/funds", { params });
+    return response.data.data;
+  },
+
+  /**
+   * Get fund by ID
+   * GET /api/funds/:id
+   */
+  getById: async (id: string): Promise<Fund> => {
+    const response = await apiClient.get<ApiResponse<Fund>>(`/funds/${id}`);
+    return response.data.data;
+  },
+
+  /**
+   * Create fund (admin only)
+   * POST /api/funds
+   */
+  create: async (data: Partial<Fund>): Promise<Fund> => {
+    const response = await apiClient.post<ApiResponse<Fund>>("/funds", data);
+    return response.data.data;
+  },
+
+  /**
+   * Update fund (admin only)
+   * PATCH /api/funds/:id
+   */
+  update: async (id: string, data: Partial<Fund>): Promise<Fund> => {
+    const response = await apiClient.patch<ApiResponse<Fund>>(`/funds/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Delete fund (admin only)
+   * DELETE /api/funds/:id
+   */
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/funds/${id}`);
+  },
+
+  /**
+   * Apply for funding
+   * POST /api/funds/:fundId/apply
+   */
+  apply: async (fundId: string, data: CreateFundApplicationRequest): Promise<FundApplication> => {
+    const response = await apiClient.post<ApiResponse<FundApplication>>(`/funds/${fundId}/apply`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Get user's fund applications
+   * GET /api/funds/me/applications
+   */
+  getMyApplications: async (): Promise<FundApplication[]> => {
+    const response = await apiClient.get<ApiResponse<FundApplication[]>>("/funds/me/applications");
+    return response.data.data;
+  },
+
+  /**
+   * Get applications for a fund (admin/staff only)
+   * GET /api/funds/:fundId/applications
+   */
+  getApplications: async (fundId: string, params?: { status?: string }): Promise<FundApplication[]> => {
+    const response = await apiClient.get<ApiResponse<FundApplication[]>>(`/funds/${fundId}/applications`, { params });
+    return response.data.data;
+  },
+
+  /**
+   * Update application status (admin/staff only)
+   * PATCH /api/funds/applications/:applicationId/status
+   */
+  updateApplicationStatus: async (
+    applicationId: string,
+    status: string,
+    comments?: string
+  ): Promise<FundApplication> => {
+    const response = await apiClient.patch<ApiResponse<FundApplication>>(
+      `/funds/applications/${applicationId}/status`,
+      { status, comments }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Withdraw fund application
+   * POST /api/funds/applications/:applicationId/withdraw
+   */
+  withdrawApplication: async (applicationId: string): Promise<FundApplication> => {
+    const response = await apiClient.post<ApiResponse<FundApplication>>(
+      `/funds/applications/${applicationId}/withdraw`
+    );
+    return response.data.data;
+  },
+};
+
+/**
+ * Competition API
+ */
+export const competitionApi = {
+  /**
+   * Get all competitions
+   * GET /api/competitions
+   */
+  getAll: async (params?: { status?: string; competitionType?: string; upcomingOnly?: boolean }): Promise<Competition[]> => {
+    const response = await apiClient.get<ApiResponse<Competition[]>>("/competitions", { params });
+    return response.data.data;
+  },
+
+  /**
+   * Get competition by ID
+   * GET /api/competitions/:id
+   */
+  getById: async (id: string): Promise<Competition> => {
+    const response = await apiClient.get<ApiResponse<Competition>>(`/competitions/${id}`);
+    return response.data.data;
+  },
+
+  /**
+   * Create competition (admin only)
+   * POST /api/competitions
+   */
+  create: async (data: CreateCompetitionRequest): Promise<Competition> => {
+    const response = await apiClient.post<ApiResponse<Competition>>("/competitions", data);
+    return response.data.data;
+  },
+
+  /**
+   * Update competition (admin only)
+   * PATCH /api/competitions/:id
+   */
+  update: async (id: string, data: Partial<CreateCompetitionRequest>): Promise<Competition> => {
+    const response = await apiClient.patch<ApiResponse<Competition>>(`/competitions/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Delete competition (admin only)
+   * DELETE /api/competitions/:id
+   */
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/competitions/${id}`);
+  },
+
+  /**
+   * Register for competition
+   * POST /api/competitions/:id/register
+   */
+  register: async (id: string): Promise<Competition> => {
+    const response = await apiClient.post<ApiResponse<Competition>>(`/competitions/${id}/register`);
+    return response.data.data;
+  },
+
+  /**
+   * Unregister from competition
+   * POST /api/competitions/:id/unregister
+   */
+  unregister: async (id: string): Promise<Competition> => {
+    const response = await apiClient.post<ApiResponse<Competition>>(`/competitions/${id}/unregister`);
+    return response.data.data;
+  },
+
+  /**
+   * Publish competition results (admin only)
+   * POST /api/competitions/:id/results
+   */
+  publishResults: async (id: string, results: any): Promise<Competition> => {
+    const response = await apiClient.post<ApiResponse<Competition>>(`/competitions/${id}/results`, { results });
+    return response.data.data;
+  },
+};
+
+/**
+ * Event API
+ */
+export const eventApi = {
+  /**
+   * Get all events
+   * GET /api/events
+   */
+  getAll: async (params?: { status?: string; eventType?: string; category?: string; upcomingOnly?: boolean }): Promise<Event[]> => {
+    const response = await apiClient.get<ApiResponse<Event[]>>("/events", { params });
+    return response.data.data;
+  },
+
+  /**
+   * Get event by ID
+   * GET /api/events/:id
+   */
+  getById: async (id: string): Promise<Event> => {
+    const response = await apiClient.get<ApiResponse<Event>>(`/events/${id}`);
+    return response.data.data;
+  },
+
+  /**
+   * Create event (admin only)
+   * POST /api/events
+   */
+  create: async (data: CreateEventRequest): Promise<Event> => {
+    const response = await apiClient.post<ApiResponse<Event>>("/events", data);
+    return response.data.data;
+  },
+
+  /**
+   * Update event (admin only)
+   * PATCH /api/events/:id
+   */
+  update: async (id: string, data: Partial<CreateEventRequest>): Promise<Event> => {
+    const response = await apiClient.patch<ApiResponse<Event>>(`/events/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Delete event (admin only)
+   * DELETE /api/events/:id
+   */
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/events/${id}`);
+  },
+
+  /**
+   * Register for event
+   * POST /api/events/:id/register
+   */
+  register: async (id: string): Promise<Event> => {
+    const response = await apiClient.post<ApiResponse<Event>>(`/events/${id}/register`);
+    return response.data.data;
+  },
+
+  /**
+   * Unregister from event
+   * POST /api/events/:id/unregister
+   */
+  unregister: async (id: string): Promise<Event> => {
+    const response = await apiClient.post<ApiResponse<Event>>(`/events/${id}/unregister`);
+    return response.data.data;
+  },
+
+  /**
+   * Get user's registered events
+   * GET /api/events/me/registered
+   */
+  getMyEvents: async (): Promise<Event[]> => {
+    const response = await apiClient.get<ApiResponse<Event[]>>("/events/me/registered");
+    return response.data.data;
+  },
+
+  /**
+   * Add materials to event (admin only)
+   * POST /api/events/:id/materials
+   */
+  addMaterials: async (id: string, materials: Array<{ title: string; url: string; type: string }>): Promise<Event> => {
+    const response = await apiClient.post<ApiResponse<Event>>(`/events/${id}/materials`, { materials });
+    return response.data.data;
+  },
+};
+
+/**
  * Main API object containing all API modules
  * Usage: import { api } from '@/lib/api'
  * Then: api.auth.login(), api.applications.getAll(), etc.
@@ -355,6 +846,10 @@ export const api = {
   auth: authApi,
   applications: applicationsApi,
   users: usersApi,
+  training: trainingApi,
+  funds: fundApi,
+  competitions: competitionApi,
+  events: eventApi,
 };
 
 // Default export

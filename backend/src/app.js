@@ -18,6 +18,10 @@ const swaggerSpec = require('./docs/swagger');
 const authRoutes = require('./modules/auth/auth.routes');
 const userRoutes = require('./modules/users/user.routes');
 const applicationRoutes = require('./modules/applications/application.routes');
+const trainingRoutes = require('./modules/training/training.routes');
+const fundRoutes = require('./modules/funds/fund.routes');
+const competitionRoutes = require('./modules/competitions/competition.routes');
+const eventRoutes = require('./modules/events/event.routes');
 const healthRoutes = require('./common/routes/health.routes');
 
 // Create Express app
@@ -57,6 +61,10 @@ app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/training', trainingRoutes);
+app.use('/api/funds', fundRoutes);
+app.use('/api/competitions', competitionRoutes);
+app.use('/api/events', eventRoutes);
 
 // 404 Not Found middleware - must be after all routes
 app.use(notFound);
