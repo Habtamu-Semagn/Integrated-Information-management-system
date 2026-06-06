@@ -58,6 +58,11 @@ export default function LoginPage() {
     try {
       const response = await api.auth.login(formData);
       
+      // Store user object in localStorage for dashboard routing
+      if (response.data.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+      
       // Update auth context state immediately to prevent redirect race conditions
       if (response.data.token) {
         login(response.data.user, response.data.token);

@@ -32,6 +32,8 @@ async function getAllTrainings(filters = {}) {
     }
     
     const trainings = await Training.find(query)
+      .populate('enrolledUsers', 'name email')
+      .populate('completedUsers.userId', 'name email')
       .sort({ createdAt: -1 })
       .limit(100);
     

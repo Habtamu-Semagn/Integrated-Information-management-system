@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Loader2, DollarSign, Send } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface FundWithApplication extends Fund {
   application?: FundApplication;
@@ -57,19 +58,25 @@ export default function FundsPage() {
     }
 
     try {
-      await api.funds.apply(selectedFund.id, {
+      const response = await api.funds.apply(selectedFund.id, {
         teamSize: parseInt(formData.teamSize),
         fundingRequired: parseFloat(formData.fundingRequired),
         useOfFunds: formData.useOfFunds,
         businessPlan: formData.businessPlan,
         financialProjections: formData.financialProjections,
       });
-      setShowApplyDialog(false);
-      setFormData({ teamSize: '', fundingRequired: '', useOfFunds: '', businessPlan: '', financialProjections: '' });
-      await loadData();
-    } catch (err) {
-      setError('Failed to submit application');
-      console.error(err);
+      
+      if (response) {
+        toast.success('Application submitted successfully');
+        setShowApplyDialog(false);
+        setFormData({ teamSize: '', fundingRequired: '', useOfFunds: '', businessPlan: '', financialProjections: '' });
+        await loadData();
+      }
+    } catch (err: any) {
+      console.error('Application error:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to submit application';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -103,220 +110,168 @@ export default function FundsPage() {
         </div>
       )}
 
-      {/* My Applications Summary */}
-      {applications.length > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-blue-900">Your Applications</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 md:grid-cols-3">
-              <div>
-                <p className="text-sm text-blue-700">Total Applications</p>
-                <p className="text-2xl font-bold text-blue-900">{applications.length}</p>
-              </div>
-              <div>
-                <p className="text-sm text-blue-700">Approved</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {applications.filter((a) => a.status === 'approved').length}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-blue-700">Under Review</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {applications.filter((a) => a.status === 'under-review').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Funds Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Funds</CardTitle>
+          <CardDescription>{funds.length} opportunity(ies) available</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-3 px-4 font-semibold">Fund Name</th>
+                  <th className="text-left py-3 px-4 font-semibold">Type</th>
+                  <th className="text-left py-3 px-4 font-semibold">Amount</th>
+                  <th className="text-left py-3 px-4 font-semibold">Deadline</th>
+                  <th className="text-left py-3 px-4 font-semibold">Status</th>
+                  <th className="text-right py-3 px-4 font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {funds.map((fund) => {
+                  const applied = hasApplied(fund.id);
+                  const status = getApplicationStatus(fund.id);
 
-      {/* Funds Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {funds.map((fund) => {
-          const applied = hasApplied(fund.id);
-          const status = getApplicationStatus(fund.id);
-
-          return (
-            <Card key={fund.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{fund.title}</CardTitle>
-                    <CardDescription>{fund.fundingOrganization}</CardDescription>
-                  </div>
-                  <Badge variant="outline">{fund.fundType}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">{fund.description}</p>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Min Amount</p>
-                    <p className="font-semibold">
-                      ${fund.minimumAmount.toLocaleString()} {fund.currency}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Max Amount</p>
-                    <p className="font-semibold">
-                      ${fund.maximumAmount.toLocaleString()} {fund.currency}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Deadline</p>
-                  <p className="font-semibold">{new Date(fund.deadline).toLocaleDateString()}</p>
-                </div>
-
-                {fund.requirements && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Requirements:</p>
-                    <ul className="text-sm space-y-1">
-                      {fund.requirements.minTeamSize && (
-                        <li>Min Team Size: {fund.requirements.minTeamSize}</li>
-                      )}
-                      {fund.requirements.targetIndustries && (
-                        <li>Industries: {fund.requirements.targetIndustries.join(', ')}</li>
-                      )}
-                      {fund.requirements.eligibleCountries && (
-                        <li>Countries: {fund.requirements.eligibleCountries.join(', ')}</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="pt-4 border-t">
-                  {applied ? (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Application Status:</p>
-                      <Badge
-                        className="w-full text-center justify-center py-1"
-                        variant={
-                          status === 'approved'
-                            ? 'default'
-                            : status === 'rejected'
-                            ? 'destructive'
-                            : 'secondary'
-                        }
-                      >
-                        {status?.replace('-', ' ').toUpperCase()}
-                      </Badge>
-                    </div>
-                  ) : (
-                    <Dialog open={showApplyDialog && selectedFund?.id === fund.id} onOpenChange={setShowApplyDialog}>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={() => setSelectedFund(fund)}
-                          className="w-full"
-                          variant="default"
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          Apply Now
-                        </Button>
-                      </DialogTrigger>
-                      {selectedFund?.id === fund.id && (
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Apply for {fund.title}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Team Size *</label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={formData.teamSize}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, teamSize: e.target.value })
-                                }
-                                placeholder="Number of team members"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Funding Required ({fund.currency}) *</label>
-                              <input
-                                type="number"
-                                min={fund.minimumAmount}
-                                max={fund.maximumAmount}
-                                value={formData.fundingRequired}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    fundingRequired: e.target.value,
-                                  })
-                                }
-                                placeholder={`Between ${fund.minimumAmount} and ${fund.maximumAmount}`}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Use of Funds *</label>
-                              <textarea
-                                value={formData.useOfFunds}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    useOfFunds: e.target.value,
-                                  })
-                                }
-                                placeholder="Describe how you plan to use the funding"
-                                rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Business Plan</label>
-                              <textarea
-                                value={formData.businessPlan}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    businessPlan: e.target.value,
-                                  })
-                                }
-                                placeholder="Optional: Share your business plan"
-                                rows={2}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                              />
-                            </div>
-
-                            <div className="flex gap-2">
-                              <Button onClick={handleApply} className="flex-1">
-                                Submit Application
-                              </Button>
+                  return (
+                    <tr key={fund.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium">{fund.title}</td>
+                      <td className="py-3 px-4 capitalize">{fund.fundType?.replace('-', ' ')}</td>
+                      <td className="py-3 px-4">${fund.maximumAmount?.toLocaleString()}</td>
+                      <td className="py-3 px-4">{new Date(fund.deadline).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">
+                        {applied ? (
+                          <Badge
+                            variant={
+                              status === 'approved'
+                                ? 'default'
+                                : status === 'rejected'
+                                ? 'destructive'
+                                : 'secondary'
+                            }
+                          >
+                            {status?.replace('-', ' ').toUpperCase()}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Not Applied</Badge>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {!applied && (
+                          <Dialog open={showApplyDialog && selectedFund?.id === fund.id} onOpenChange={setShowApplyDialog}>
+                            <DialogTrigger asChild>
                               <Button
-                                onClick={() => setShowApplyDialog(false)}
-                                variant="outline"
-                                className="flex-1"
+                                onClick={() => setSelectedFund(fund)}
+                                size="sm"
+                                variant="default"
                               >
-                                Cancel
+                                <Send className="h-4 w-4 mr-1" />
+                                Apply
                               </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      )}
-                    </Dialog>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                            </DialogTrigger>
+                            {selectedFund?.id === fund.id && (
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Apply for {fund.title}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="block text-sm font-medium mb-2">Team Size *</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={formData.teamSize}
+                                      onChange={(e) =>
+                                        setFormData({ ...formData, teamSize: e.target.value })
+                                      }
+                                      placeholder="Number of team members"
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium mb-2">Funding Required *</label>
+                                    <input
+                                      type="number"
+                                      min={fund.minimumAmount}
+                                      max={fund.maximumAmount}
+                                      value={formData.fundingRequired}
+                                      onChange={(e) =>
+                                        setFormData({
+                                          ...formData,
+                                          fundingRequired: e.target.value,
+                                        })
+                                      }
+                                      placeholder={`Between ${fund.minimumAmount} and ${fund.maximumAmount}`}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium mb-2">Use of Funds *</label>
+                                    <textarea
+                                      value={formData.useOfFunds}
+                                      onChange={(e) =>
+                                        setFormData({
+                                          ...formData,
+                                          useOfFunds: e.target.value,
+                                        })
+                                      }
+                                      placeholder="Describe how you plan to use the funding"
+                                      rows={3}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium mb-2">Business Plan</label>
+                                    <textarea
+                                      value={formData.businessPlan}
+                                      onChange={(e) =>
+                                        setFormData({
+                                          ...formData,
+                                          businessPlan: e.target.value,
+                                        })
+                                      }
+                                      placeholder="Optional: Share your business plan"
+                                      rows={2}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    />
+                                  </div>
+
+                                  <div className="flex gap-2">
+                                    <Button onClick={handleApply} className="flex-1">
+                                      Submit Application
+                                    </Button>
+                                    <Button
+                                      onClick={() => setShowApplyDialog(false)}
+                                      variant="outline"
+                                      className="flex-1"
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            )}
+                          </Dialog>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       {funds.length === 0 && (
         <Card>
-          <CardContent className="pt-6 text-center">
+          <CardContent className="pt-6 text-center text-gray-600">
             <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600">No funding opportunities available</p>
+            <p>No funding opportunities available</p>
           </CardContent>
         </Card>
       )}

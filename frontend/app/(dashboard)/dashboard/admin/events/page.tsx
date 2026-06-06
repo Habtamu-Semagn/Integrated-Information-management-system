@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Eye, Search, Plus, Trash2, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Eye, Search, Plus, Trash2, Loader2, Users } from "lucide-react";
 import { api, Event } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -46,6 +45,7 @@ export default function AdminEventsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"manage" | "registrations">("manage");
   const [createData, setCreateData] = useState({
     title: "",
     description: "",
@@ -270,6 +270,29 @@ export default function AdminEventsPage() {
         </Dialog>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-4 border-b">
+        <button
+          onClick={() => setActiveTab("manage")}
+          className={`pb-2 px-4 font-medium border-b-2 transition-colors ${
+            activeTab === "manage" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Manage Events
+        </button>
+        <button
+          onClick={() => setActiveTab("registrations")}
+          className={`pb-2 px-4 font-medium border-b-2 transition-colors ${
+            activeTab === "registrations" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <Users className="inline mr-2 h-4 w-4" />
+          Registrations
+        </button>
+      </div>
+
+      {activeTab === "manage" && (
+      <>
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -347,11 +370,9 @@ export default function AdminEventsPage() {
                     <TableCell>{new Date(event.startDateTime).toLocaleDateString()}</TableCell>
                     <TableCell>{getStatusBadge(event.status)}</TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Link href={`/dashboard/admin/events/${event.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                      <Button variant="ghost" size="sm" disabled>
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -367,6 +388,78 @@ export default function AdminEventsPage() {
           </Table>
         </CardContent>
       </Card>
+      </>
+      )}
+
+      {activeTab === "registrations" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Event Registrations</CardTitle>
+            <CardDescription>
+              View all registered attendees for events
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 font-semibold">Event Title</th>
+                    <th className="text-left py-3 px-4 font-semibold">Attendee Name</th>
+                    <th className="text-left py-3 px-4 font-semibold">Email</th>
+                    <th className="text-left py-3 px-4 font-semibold">Event Date</th>
+                    <th className="text-left py-3 px-4 font-semibold">Event Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-6">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                      </td>
+                    </tr>
+                  ) : events.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-6 text-gray-500">
+                        No event registrations found
+                      </td>
+                    </tr>
+                  ) : (
+                    events
+                      .flatMap(event => {
+                        const registrationRows: any[] = [];
+                        
+                        if (event.registeredAttendees && event.registeredAttendees.length > 0) {
+                          event.registeredAttendees.forEach((attendee: any) => {
+                            registrationRows.push({
+                              eventId: event.id,
+                              eventTitle: event.title,
+                              attendeeName: attendee.name,
+                              attendeeEmail: attendee.email,
+                              eventDate: new Date(event.startDateTime).toLocaleDateString(),
+                              eventStatus: event.status
+                            });
+                          });
+                        }
+                        
+                        return registrationRows;
+                      })
+                      .map((row, idx) => (
+                        <tr key={`${row.eventId}-${idx}`} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4 font-medium">{row.eventTitle}</td>
+                          <td className="py-3 px-4">{row.attendeeName}</td>
+                          <td className="py-3 px-4 text-sm">{row.attendeeEmail}</td>
+                          <td className="py-3 px-4 text-sm">{row.eventDate}</td>
+                          <td className="py-3 px-4">{getStatusBadge(row.eventStatus)}</td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

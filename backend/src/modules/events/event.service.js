@@ -43,6 +43,7 @@ async function getAllEvents(filters = {}) {
     }
     
     const events = await Event.find(query)
+      .populate('registeredAttendees', 'name email')
       .sort({ startDateTime: 1 })
       .limit(100);
     

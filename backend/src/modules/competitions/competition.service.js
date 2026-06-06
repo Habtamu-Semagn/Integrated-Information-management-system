@@ -39,6 +39,7 @@ async function getAllCompetitions(filters = {}) {
     }
     
     const competitions = await Competition.find(query)
+      .populate('participants', 'name email')
       .sort({ competitionDate: 1 })
       .limit(100);
     

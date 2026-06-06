@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Eye, Search, Plus, Trash2, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Eye, Search, Plus, Trash2, Loader2, Users } from "lucide-react";
 import { api, Competition } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -39,6 +38,7 @@ export default function AdminCompetitionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"manage" | "participants">("manage");
   const [createData, setCreateData] = useState({
     name: "",
     description: "",
@@ -214,6 +214,29 @@ export default function AdminCompetitionsPage() {
         </Dialog>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-4 border-b">
+        <button
+          onClick={() => setActiveTab("manage")}
+          className={`pb-2 px-4 font-medium border-b-2 transition-colors ${
+            activeTab === "manage" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Manage Competitions
+        </button>
+        <button
+          onClick={() => setActiveTab("participants")}
+          className={`pb-2 px-4 font-medium border-b-2 transition-colors ${
+            activeTab === "participants" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <Users className="inline mr-2 h-4 w-4" />
+          Participants
+        </button>
+      </div>
+
+      {activeTab === "manage" && (
+      <>
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -291,11 +314,9 @@ export default function AdminCompetitionsPage() {
                     <TableCell>{new Date(comp.competitionDate).toLocaleDateString()}</TableCell>
                     <TableCell>{getStatusBadge(comp.status)}</TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Link href={`/dashboard/admin/competitions/${comp.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                      <Button variant="ghost" size="sm" disabled>
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -311,6 +332,78 @@ export default function AdminCompetitionsPage() {
           </Table>
         </CardContent>
       </Card>
+      </>
+      )}
+
+      {activeTab === "participants" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Competition Participants</CardTitle>
+            <CardDescription>
+              View all registered participants for competitions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 font-semibold">Competition Title</th>
+                    <th className="text-left py-3 px-4 font-semibold">Participant Name</th>
+                    <th className="text-left py-3 px-4 font-semibold">Email</th>
+                    <th className="text-left py-3 px-4 font-semibold">Competition Date</th>
+                    <th className="text-left py-3 px-4 font-semibold">Competition Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-6">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                      </td>
+                    </tr>
+                  ) : competitions.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-6 text-gray-500">
+                        No competition participants found
+                      </td>
+                    </tr>
+                  ) : (
+                    competitions
+                      .flatMap(comp => {
+                        const participantRows: any[] = [];
+                        
+                        if (comp.participants && comp.participants.length > 0) {
+                          comp.participants.forEach((participant: any) => {
+                            participantRows.push({
+                              competitionId: comp.id,
+                              competitionTitle: comp.title,
+                              participantName: participant.name,
+                              participantEmail: participant.email,
+                              competitionDate: new Date(comp.competitionDate).toLocaleDateString(),
+                              competitionStatus: comp.status
+                            });
+                          });
+                        }
+                        
+                        return participantRows;
+                      })
+                      .map((row, idx) => (
+                        <tr key={`${row.competitionId}-${idx}`} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4 font-medium">{row.competitionTitle}</td>
+                          <td className="py-3 px-4">{row.participantName}</td>
+                          <td className="py-3 px-4 text-sm">{row.participantEmail}</td>
+                          <td className="py-3 px-4 text-sm">{row.competitionDate}</td>
+                          <td className="py-3 px-4">{getStatusBadge(row.competitionStatus)}</td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -42,7 +42,13 @@ async function createFundApplication(fundId, userId, applicationData) {
     const application = await FundApplication.create({
       fundId,
       startupId: userId,
-      applicationData
+      applicationData: {
+        teamSize: applicationData.teamSize,
+        fundingRequired: applicationData.fundingRequired,
+        useOfFunds: applicationData.useOfFunds,
+        businessPlan: applicationData.businessPlan,
+        financialProjections: applicationData.financialProjections
+      }
     });
     
     // Add to fund's applications list

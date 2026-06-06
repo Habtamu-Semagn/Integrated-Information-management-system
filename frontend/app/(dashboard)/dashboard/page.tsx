@@ -16,8 +16,9 @@ export default function DashboardPage() {
 
     try {
       const user = JSON.parse(userStr);
-      const role = user.role;
+      const role = user.role?.toLowerCase();
 
+      // Validate role and redirect accordingly
       if (role === "admin") {
         router.push("/dashboard/admin");
       } else if (role === "staff") {
@@ -25,9 +26,11 @@ export default function DashboardPage() {
       } else if (role === "applicant") {
         router.push("/dashboard/applicant");
       } else {
+        // Unknown role, default to applicant
         router.push("/dashboard/applicant");
       }
     } catch (error) {
+      console.error("Error parsing user data:", error);
       router.push("/login");
     }
   }, [router]);
