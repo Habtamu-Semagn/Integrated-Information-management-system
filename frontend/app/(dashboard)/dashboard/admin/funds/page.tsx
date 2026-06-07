@@ -433,6 +433,7 @@ export default function AdminFundsPage() {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-4 font-semibold">Startup</th>
+                      <th className="text-left py-3 px-4 font-semibold">Email</th>
                       <th className="text-left py-3 px-4 font-semibold">Fund</th>
                       <th className="text-left py-3 px-4 font-semibold">Team Size</th>
                       <th className="text-left py-3 px-4 font-semibold">Funding Requested</th>
@@ -444,7 +445,7 @@ export default function AdminFundsPage() {
                   <tbody>
                     {applicationsLoading ? (
                       <tr>
-                        <td colSpan={7} className="text-center py-6">
+                        <td colSpan={8} className="text-center py-6">
                           <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
                         </td>
                       </tr>
@@ -457,7 +458,7 @@ export default function AdminFundsPage() {
                       return statusMatch && searchMatch;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="text-center py-6 text-gray-500">
+                        <td colSpan={8} className="text-center py-6 text-gray-500">
                           No applications found
                         </td>
                       </tr>
@@ -475,6 +476,9 @@ export default function AdminFundsPage() {
                           <tr key={app.id} className="border-b hover:bg-gray-50">
                             <td className="py-3 px-4 font-medium">
                               {typeof app.startupId === 'string' ? app.startupId : (app.startupId as any)?.name || 'N/A'}
+                            </td>
+                            <td className="py-3 px-4 text-sm">
+                              {typeof app.startupId === 'string' ? 'N/A' : (app.startupId as any)?.email || 'N/A'}
                             </td>
                             <td className="py-3 px-4">{app.fundTitle}</td>
                             <td className="py-3 px-4">{app.applicationData?.teamSize || 'N/A'}</td>

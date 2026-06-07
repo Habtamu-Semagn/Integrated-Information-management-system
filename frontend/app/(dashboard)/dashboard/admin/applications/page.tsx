@@ -129,7 +129,7 @@ export default function AdminApplicationsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredApplications.map((app) => (
+                filteredApplications.map((app: any) => (
                   <TableRow key={app.id}>
                     <TableCell className="font-medium">{app.startupName}</TableCell>
                     <TableCell>

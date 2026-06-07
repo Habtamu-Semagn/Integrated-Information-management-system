@@ -141,7 +141,7 @@ export default function StaffCompetitionsPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(comp.status)}</TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/dashboard/staff/competitions/${comp.id}`}>
+                      <Link href={`/dashboard/staff/competitions/applications/${comp.id}`}>
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4 mr-2" />
                           View

@@ -141,7 +141,7 @@ export default function StaffEventsPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(event.status)}</TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/dashboard/staff/events/${event.id}`}>
+                      <Link href={`/dashboard/staff/events/applications/${event.id}`}>
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4 mr-2" />
                           View

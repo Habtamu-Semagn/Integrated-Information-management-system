@@ -185,6 +185,13 @@ export interface CreateFundApplicationRequest {
   financialProjections?: string;
 }
 
+// Participant Type (when populated from backend)
+export interface Participant {
+  _id: string;
+  name: string;
+  email: string;
+}
+
 // Competition Types
 export interface Competition {
   id: string;
@@ -199,7 +206,7 @@ export interface Competition {
   maxParticipants?: number;
   judges?: Array<{ name: string; expertise: string; imageUrl?: string }>;
   status: "upcoming" | "ongoing" | "completed" | "cancelled";
-  participants?: string[];
+  participants?: (string | Participant)[];
   results?: { firstPlaceWinner?: string; secondPlaceWinner?: string; thirdPlaceWinner?: string };
   tags?: string[];
   createdAt: string;

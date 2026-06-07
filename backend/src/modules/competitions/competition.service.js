@@ -39,7 +39,7 @@ async function getAllCompetitions(filters = {}) {
     }
     
     const competitions = await Competition.find(query)
-      .populate('participants', 'name email')
+      .populate('participants', 'name email _id')
       .sort({ competitionDate: 1 })
       .limit(100);
     
@@ -55,7 +55,7 @@ async function getAllCompetitions(filters = {}) {
 async function getCompetitionById(competitionId) {
   try {
     const competition = await Competition.findById(competitionId)
-      .populate('participants', 'name email')
+      .populate('participants', 'name email _id')
       .populate('results.firstPlaceWinner', 'name')
       .populate('results.secondPlaceWinner', 'name')
       .populate('results.thirdPlaceWinner', 'name');
@@ -128,7 +128,11 @@ async function registerForCompetition(competitionId, userId) {
     competition.participants.push(userId);
     await competition.save();
     
-    return competition.toJSON();
+    // Fetch the updated competition with populated participants to return consistent data
+    const updatedCompetition = await Competition.findById(competitionId)
+      .populate('participants', 'name email _id');
+    
+    return updatedCompetition.toJSON();
   } catch (error) {
     if (error.message.includes('already registered') || error.message.includes('not found')) {
       throw error;
@@ -163,7 +167,11 @@ async function unregisterFromCompetition(competitionId, userId) {
     );
     await competition.save();
     
-    return competition.toJSON();
+    // Fetch the updated competition with populated participants to return consistent data
+    const updatedCompetition = await Competition.findById(competitionId)
+      .populate('participants', 'name email _id');
+    
+    return updatedCompetition.toJSON();
   } catch (error) {
     if (error.message.includes('not registered') || error.message.includes('not found')) {
       throw error;

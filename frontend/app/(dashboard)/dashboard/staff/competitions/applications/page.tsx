@@ -6,22 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileText, Eye } from 'lucide-react';
-import { api, Fund } from '@/lib/api';
+import { Loader2, Trophy, Eye } from 'lucide-react';
+import { api, Competition } from '@/lib/api';
 
-export default function FundsApplicationsPage() {
+export default function CompetitionsApplicationsPage() {
   const router = useRouter();
-  const [funds, setFunds] = useState<Fund[]>([]);
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await api.funds.getAll();
-        setFunds(data);
+        const data = await api.competitions.getAll();
+        setCompetitions(data);
       } catch (err) {
-        console.error('Failed to fetch funds:', err);
+        console.error('Failed to fetch competitions:', err);
       } finally {
         setLoading(false);
       }
@@ -30,34 +30,25 @@ export default function FundsApplicationsPage() {
     fetchData();
   }, []);
 
-  const handleViewFund = (fundId: string) => {
-    router.push(`/dashboard/staff/funds/applications/${fundId}`);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
-      open: 'default',
-      closed: 'secondary',
-      paused: 'destructive',
-    };
-    return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+  const handleViewCompetition = (competitionId: string) => {
+    router.push(`/dashboard/staff/competitions/applications/${competitionId}`);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Fund Applications</h1>
-        <p className="text-gray-600">View funding opportunities and applications</p>
+        <h1 className="text-3xl font-bold">Competition Registrations</h1>
+        <p className="text-gray-600">View participants registered for competitions</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            All Funds
+            <Trophy className="h-5 w-5" />
+            All Competitions
           </CardTitle>
           <CardDescription>
-            {funds.length} funding(s) available
+            {competitions.length} competition(s) with registrations
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,11 +56,11 @@ export default function FundsApplicationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fund Name</TableHead>
+                  <TableHead>Competition Title</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Amount Range</TableHead>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Deadline</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Participants</TableHead>
+                  <TableHead>Max Capacity</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
@@ -79,33 +70,43 @@ export default function FundsApplicationsPage() {
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-10">
                       <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500 mb-2" />
-                      <p className="text-sm text-gray-600">Loading funds...</p>
+                      <p className="text-sm text-gray-600">Loading competitions...</p>
                     </TableCell>
                   </TableRow>
-                ) : funds.length === 0 ? (
+                ) : competitions.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-gray-600 py-10">
-                      No funds available
+                      No competitions available
                     </TableCell>
                   </TableRow>
                 ) : (
-                  funds.map((fund) => (
-                    <TableRow key={fund.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{fund.title}</TableCell>
+                  competitions.map((comp) => (
+                    <TableRow key={comp.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{comp.title}</TableCell>
                       <TableCell className="text-xs uppercase text-gray-600">
-                        {fund.fundType.replace(/-/g, ' ')}
+                        {comp.competitionType.replace(/-/g, ' ')}
                       </TableCell>
+                      <TableCell>{new Date(comp.competitionDate).toLocaleDateString()}</TableCell>
+                      <TableCell className="font-semibold">{comp.participants?.length || 0}</TableCell>
+                      <TableCell>{comp.maxParticipants || '-'}</TableCell>
                       <TableCell>
-                        ${fund.minimumAmount?.toLocaleString()} - ${fund.maximumAmount?.toLocaleString()}
+                        <Badge
+                          variant={
+                            comp.status === 'completed'
+                              ? 'secondary'
+                              : comp.status === 'cancelled'
+                              ? 'destructive'
+                              : 'default'
+                          }
+                        >
+                          {comp.status}
+                        </Badge>
                       </TableCell>
-                      <TableCell>{fund.fundingOrganization}</TableCell>
-                      <TableCell>{new Date(fund.deadline).toLocaleDateString()}</TableCell>
-                      <TableCell>{getStatusBadge(fund.status)}</TableCell>
                       <TableCell>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleViewFund(fund.id)}
+                          onClick={() => handleViewCompetition(comp.id)}
                           className="flex items-center gap-1"
                         >
                           <Eye className="h-4 w-4" />
