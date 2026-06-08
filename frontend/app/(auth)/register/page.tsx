@@ -9,7 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api } from "@/lib/api";
-import { Eye, EyeOff, UserPlus, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, UserPlus, AlertCircle, Loader2, CheckCircle2, Building2 } from "lucide-react";
+
+const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  e.preventDefault();
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -125,7 +133,32 @@ export default function RegisterPage() {
   const passwordStrength = getPasswordStrength();
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6 sm:p-8 py-12">
+    <div className="flex flex-col min-h-screen">
+      {/* Header */}
+      <header className="border-b bg-white sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+              <Building2 className="h-8 w-8 text-blue-700" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Incubation Center</h1>
+                <p className="text-xs text-gray-600">Supporting Startups from the Ground Up</p>
+              </div>
+            </div>
+          </Link>
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/" className="text-sm font-medium text-gray-700 hover:text-blue-700 transition cursor-pointer">
+              Home
+            </Link>
+            <Link href="/login">
+              <Button variant="outline" size="sm">Login</Button>
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 py-12">
       <div className="w-full max-w-lg">
         {/* Logo/Brand Section */}
         <div className="mb-10 text-center">
@@ -347,6 +380,53 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
+      </div>
+
+      {/* Page Footer */}
+      <footer className="bg-gray-900 text-gray-300 py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="h-6 w-6 text-blue-500" />
+                <span className="font-bold text-white">Incubation Center</span>
+              </div>
+              <p className="text-sm">
+                Supporting startups from the ground up with comprehensive resources and expert guidance.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/" className="hover:text-blue-500 transition">Home</Link></li>
+                <li><a href="/" className="hover:text-blue-500 transition">About Us</a></li>
+                <li><a href="/" className="hover:text-blue-500 transition">Services</a></li>
+                <li><a href="/" className="hover:text-blue-500 transition">Benefits</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white mb-4">Resources</h3>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-blue-500 transition">FAQ</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition">Guidelines</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition">Success Stories</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white mb-4">Contact</h3>
+              <ul className="space-y-2 text-sm">
+                <li>Email: info@incubationcenter.gov</li>
+                <li>Phone: +1 (555) 123-4567</li>
+                <li>Address: Government Complex, City</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-8 text-center text-sm">
+            <p>&copy; {new Date().getFullYear()} Incubation Center. All rights reserved. A Government Initiative.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
