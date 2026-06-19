@@ -134,8 +134,8 @@ export default function ApplicationsPage() {
                     <TableCell className="font-medium">{app.startupName}</TableCell>
                     <TableCell>
                       <div>
-                        <p className="text-sm font-medium">{typeof app.userId === 'object' ? app.userId.name : 'Unknown'}</p>
-                        <p className="text-xs text-muted-foreground">{typeof app.userId === 'object' ? app.userId.email : ''}</p>
+                        <p className="text-sm font-medium">{typeof app.userId === 'object' && app.userId ? app.userId.name : 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground">{typeof app.userId === 'object' && app.userId ? app.userId.email : ''}</p>
                       </div>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">{app.description}</TableCell>

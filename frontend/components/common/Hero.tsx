@@ -55,7 +55,7 @@ function MobileListItem({item, activeItem, setActiveItem, setOpen}: {
   )
 }
 
-const listItems = ['Home', 'Programs', 'Portfolio', 'About', 'Testimony', 'Blog', 'Contact']
+const listItems = ['Home', 'Services', 'Projects', 'About', 'Testimony', 'Blog', 'Contact']
 
 export default function HeroSection() {
   const [activeItem, setActiveItem] = useState("Home");
@@ -70,6 +70,21 @@ export default function HeroSection() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Handle hash navigation on page load
+  useEffect(() => {
+    const hash = window.location.hash.slice(1); // Remove the # symbol
+    if (hash) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          setActiveItem(hash.charAt(0).toUpperCase() + hash.slice(1));
+        }
+      }, 100);
+    }
+  }, []);
+
   return (
     <div className="bg-white-50 grid grid-cols-12 h-screen bg-[url('/images/hero_img.jpg')] bg-cover bg-center bg-no-repeat md:bg-none py-20 sm:py-0">
       
@@ -77,7 +92,7 @@ export default function HeroSection() {
       <nav className={`fixed top-0 left-0 right-0 flex items-center justify-between py-6 z-50 transition-all duration-300
         ${isScrolled ? 'bg-white shadow-md py-4' : 'bg-transparent'}`}>
         <div className="flex items-center justify-between w-full px-[8.33%]">
-          <h2 className="text-xl font-bold tracking-wide">LAUNCH<span className="text-[#31de79]">PAD</span></h2>
+          <h2 className="text-xl font-bold tracking-wide">INCUB<span className="text-[#31de79]">ATION</span></h2>
           
           {/* Desktop Nav */}
           <ul className="hidden lg:flex lg:gap-13 text-black">
@@ -95,7 +110,7 @@ export default function HeroSection() {
               <VisuallyHidden>
                 <SheetTitle>Navigation Menu</SheetTitle>
               </VisuallyHidden>
-              <h2 className="text-xl font-bold tracking-wide mb-8">LAUNCH<span className="text-[#31de79]">PAD</span></h2>
+              <h2 className="text-xl font-bold tracking-wide mb-8">INCUB<span className="text-[#31de79]">ATION</span></h2>
               <ul className="flex flex-col gap-6 items-center w-full px-6">
                 {listItems.map(item => (
                   <MobileListItem key={item} item={item} activeItem={activeItem} setActiveItem={setActiveItem} setOpen={setOpen} />
@@ -108,11 +123,11 @@ export default function HeroSection() {
 
       {/* Hero Content */}
       <div className="col-start-2 col-span-10 md:col-start-2 md:col-span-5 flex flex-col justify-center items-center md:items-start pr-15 gap-10">
-        <h1 className="text-green-500 tracking-widest text-center md:text-left">WELCOME TO LAUNCHPAD HUB</h1>
+        <h1 className="text-green-500 tracking-widest text-center md:text-left">WELCOME TO INCUBATION</h1>
         <p className="text-[35px] sm:text-[40px] capitalize tracking-wide text-center md:text-left text-white md:text-black">where bold ideas become <span className="font-bold">thriving startups</span></p>
         <p className="text-xl md:text-lg tracking-wide text-center md:text-left text-gray-200 md:text-black">We provide early-stage founders with the office space, seed funding, mentorship, and pitch opportunities they need to turn their vision into reality.</p>
         <Link href="/register">
-          <Button style={{background: 'linear-gradient(to right, #7ac64d, #31de79)'}} className="self-center md:self-start px-12 py-7 text-md rounded-full">Apply Now</Button>
+          <Button style={{background: 'linear-gradient(to right, #7ac64d, #31de79)'}} className="self-center md:self-start px-12 py-7 text-md rounded-full cursor-pointer">Apply Now</Button>
         </Link>
       </div>
 

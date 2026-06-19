@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,7 +14,7 @@ const contacts = [
     {
         name: "our location",
         icon: icon1,
-        detail: ["Bole Innovation District,", "Addis Ababa, Ethiopia"]
+        detail: ["Incubation Center,", "Bahir Dar, Ethiopia"]
     },
     {
         name: "call us",
@@ -21,16 +24,68 @@ const contacts = [
     {
         name: "email us",
         icon: icon3,
-        detail: ["hello@launchpadhub.com"]
+        detail: ["hello@incubation.com"]
     },
     {
         name: "website",
         icon: icon4,
-        detail: ["www.launchpadhub.com"]
+        detail: ["www.incubation.com"]
     }
 ]
 
 export default function Contact() {
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        startupName: "",
+        message: ""
+    });
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { placeholder, value } = e.target;
+        
+        const fieldMap: Record<string, keyof typeof formData> = {
+            "Your Name": "name",
+            "Your Email": "email",
+            "Startup Name or Inquiry Type": "startupName",
+            "Tell us about your startup idea or how we can help you...": "message"
+        };
+        
+        const field = fieldMap[placeholder];
+        if (field) {
+            setFormData(prev => ({ ...prev, [field]: value }));
+        }
+    };
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        const subject = `Incubation Inquiry from ${formData.name}`;
+        const body = `
+Name: ${formData.name}
+Email: ${formData.email}
+Startup/Inquiry: ${formData.startupName}
+
+Message:
+${formData.message}
+
+---
+Sent from Incubation Contact Form
+        `.trim();
+        
+        const mailtoLink = `mailto:hello@incubation.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(formData.email)}`;
+        
+        window.location.href = mailtoLink;
+        
+        // Reset form
+        setFormData({
+            name: "",
+            email: "",
+            startupName: "",
+            message: ""
+        });
+    };
+
     return <div className="grid grid-cols-12 pb-20 pt-30 bg-gray-50">
         <div className="col-start-2 col-span-10 flex flex-col gap-4">
 
@@ -70,28 +125,45 @@ export default function Contact() {
 
                 {/* Map */}
                 <div className="bg-gray-200 min-h-64 sm:min-h-full flex items-center justify-center text-gray-400 text-sm tracking-wide">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3023.657350198858!2d-74.0059731!3d40.7410861!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259bf5c1654f3%3A0xc80f9cfce5383d5d!2sGoogle%20NYC%20-%209th%20Avenue!5e0!3m2!1sen!2sus!4v1234567890" width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="w-full h-full min-h-64" />
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3943.3976430181244!2d37.3840422!3d11.5929149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s!2zMTHCsDM1JzMyLjUiTiAzN8KwMjMnMDIuNSJF!5e0!3m2!1sen!2set!4v1234567890" width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="w-full h-full min-h-64" />
                 </div>
 
                 {/* Form */}
                 <div className="bg-slate-100 flex flex-col gap-4 p-8">
-                    <Input
-                        placeholder="Your Name"
-                        className="px-3 py-7 bg-white border-gray-300 focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg py-5 text-sm placeholder:text-gray-600 tracking-wide"
-                    />
-                    <Input
-                        placeholder="Your Email"
-                        className="px-3 py-7 bg-white border-gray-300 focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg py-5 text-sm placeholder:text-gray-600 tracking-wide"
-                    />
-                    <Input
-                        placeholder="Startup Name or Inquiry Type"
-                        className="px-3 py-7 bg-white border-gray-300 focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg py-5 text-sm placeholder:text-gray-600 tracking-wide"
-                    />
-                    <Textarea
-                        placeholder="Tell us about your startup idea or how we can help you..."
-                        className="px-3 min-h-42 border-gray-300 bg-white focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg text-sm placeholder:text-gray-600 tracking-wide resize-none leading-relaxed"
-                    />
-                    <Button style={{ background: 'linear-gradient(to right, #7ac64d, #31de79)' }} className="self-start px-12 py-7 text-md rounded-full">Send Message</Button>
+                    <form onSubmit={handleSendMessage} className="flex flex-col gap-4">
+                        <Input
+                            placeholder="Your Name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            className="px-3 py-7 bg-white border-gray-300 focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg py-5 text-sm placeholder:text-gray-600 tracking-wide"
+                        />
+                        <Input
+                            placeholder="Your Email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="px-3 py-7 bg-white border-gray-300 focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg py-5 text-sm placeholder:text-gray-600 tracking-wide"
+                        />
+                        <Input
+                            placeholder="Startup Name or Inquiry Type"
+                            value={formData.startupName}
+                            onChange={handleInputChange}
+                            className="px-3 py-7 bg-white border-gray-300 focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg py-5 text-sm placeholder:text-gray-600 tracking-wide"
+                        />
+                        <Textarea
+                            placeholder="Tell us about your startup idea or how we can help you..."
+                            value={formData.message}
+                            onChange={handleInputChange}
+                            className="px-3 min-h-42 border-gray-300 bg-white focus:border-green-400 focus:ring-2 focus:ring-green-100 rounded-lg text-sm placeholder:text-gray-600 tracking-wide resize-none leading-relaxed"
+                        />
+                        <Button 
+                            type="submit"
+                            style={{ background: 'linear-gradient(to right, #7ac64d, #31de79)' }} 
+                            className="self-start px-12 py-7 text-md rounded-full"
+                        >
+                            Send Message
+                        </Button>
+                    </form>
                 </div>
             </div>
         </div>
